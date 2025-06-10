@@ -362,8 +362,6 @@ const ScreenRecorder: React.FC = () => {
             </Alert>
           )}
 
-    
-
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={activeTab} onChange={handleTabChange}>
               <Tab 
@@ -599,6 +597,70 @@ const ScreenRecorder: React.FC = () => {
               </Typography>
             </Box>
           )}
+        </Stack>
+      </Paper>
+
+      <Paper elevation={1} sx={{ mt: 3, p: 3, bgcolor: 'grey.50' }}>
+        <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 'medium' }}>
+          使用说明
+        </Typography>
+        
+        <Stack spacing={2}>
+          <Box>
+            <Typography variant="subtitle1" sx={{ color: 'text.primary', fontWeight: 'medium', mb: 1 }}>
+              1. 内容设置
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', pl: 2 }}>
+              • URL模式：输入要录制的网页地址<br />
+              • HTML模式：输入自定义的HTML代码
+            </Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle1" sx={{ color: 'text.primary', fontWeight: 'medium', mb: 1 }}>
+              2. 预览设置
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', pl: 2 }}>
+              • 选择背景颜色：设置预览窗口的背景色<br />
+              • 设备模式：选择桌面版或移动版预览<br />
+              • 点击"Open Preview"打开预览窗口
+            </Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle1" sx={{ color: 'text.primary', fontWeight: 'medium', mb: 1 }}>
+              3. 录制操作
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', pl: 2 }}>
+              • 点击播放按钮开始录制（倒计时后自动开始）<br />
+              • 在弹出的系统窗口中选择要录制的预览窗口<br />
+              • 点击停止按钮结束录制<br />
+              • 录制完成后可以预览、下载或删除录制内容
+            </Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle1" sx={{ color: 'text.primary', fontWeight: 'medium', mb: 1 }}>
+              注意事项
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', pl: 2 }}>
+              • 首次使用时需要允许浏览器的弹窗权限<br />
+              • 录制时请确保预览窗口没有被最小化<br />
+              • 移动设备模式下会自动调整为标准手机尺寸<br />
+              • 建议在录制前关闭不需要的浏览器标签页，以方便选择录制窗口
+            </Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle1" sx={{ color: 'text.primary', fontWeight: 'medium', mb: 1 }}>
+              快捷键
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', pl: 2 }}>
+              • 开始录制：点击播放按钮或等待倒计时结束<br />
+              • 停止录制：点击停止按钮或按 ESC 键<br />
+              • 下载录制：点击下载按钮或按 Ctrl/Command + S
+            </Typography>
+          </Box>
         </Stack>
       </Paper>
 
