@@ -167,10 +167,8 @@ const ScreenRecorder: React.FC = () => {
       deviceMode,
     };
 
-    // 将数据存储在 localStorage 中
     localStorage.setItem('previewData', JSON.stringify(previewData));
 
-    // 只传递一个标识符作为参数
     const params = new URLSearchParams({
       timestamp: Date.now().toString(),
     });
@@ -180,9 +178,14 @@ const ScreenRecorder: React.FC = () => {
     // 移动设备模式下使用精确的设备尺寸，并使用应用模式
     //ipone pro max 430*932
     const windowFeatures = deviceMode === 'mobile'
-      ? `left=0,top=0,width=430,height=812,menubar=no,toolbar=no,location=no,status=no,titlebar=no,directories=no,fullscreen=yes,scrollbars=no,resizable=no,chrome=yes,centerscreen=yes`
-      : 'width=1024,height=768,menubar=no,toolbar=no,location=no,status=no';
+      ? `left=0,top=0,width=430,height=812,menubar=no,toolbar=no,location=no,status=no,titlebar=no,directories=no,fullscreen=yes,scrollbars=no,resizable=no,chrome=yes,centerscreen=yes,alwaysRaised=yes`
+      : 'width=1024,height=768,menubar=no,toolbar=no,location=no,status=no,alwaysRaised=yes';
     
+    // 关闭之前的预览窗口
+    if (previewWindow && !previewWindow.closed) {
+      previewWindow.close();
+    }
+
     const newWindow = window.open(previewUrl, 'PreviewWindow', windowFeatures);
     
     if (newWindow) {
@@ -198,29 +201,56 @@ const ScreenRecorder: React.FC = () => {
         overflow: hidden;
       `;
 
-      // 尝试进入全屏模式
-      if (deviceMode === 'mobile') {
-        try {
-          // 等待窗口加载完成后尝试进入全屏
-          newWindow.onload = () => {
-            const elem = newWindow.document.documentElement;
-            if (elem.requestFullscreen) {
-              elem.requestFullscreen();
+      // 添加窗口焦点监听
+      newWindow.addEventListener('blur', () => {
+        // 当窗口失去焦点时，尝试重新获取焦点
+        setTimeout(() => {
+          if (!recordingState.isRecording) {
+            try {
+              newWindow.focus();
+            } catch (error) {
+              console.warn('Failed to focus window:', error);
             }
-          };
-        } catch (error) {
-          console.error('Failed to enter fullscreen:', error);
-        }
-      }
+          }
+        }, 100);
+      });
 
       setPreviewWindow(newWindow);
       setError('Preview window opened. Click the record button when ready.');
+
+      // 确保新窗口置顶
+      setTimeout(() => {
+        try {
+          newWindow.focus();
+        } catch (error) {
+          console.warn('Failed to focus new window:', error);
+        }
+      }, 100);
     } else {
       setError('Failed to open preview window. Please allow pop-ups for this site.');
     }
   };
 
   const startCountdown = async () => {
+    if (!previewWindow || previewWindow.closed) {
+      setError('Please open the preview window first');
+      return;
+    }
+
+    // 尝试将预览窗口置顶
+    try {
+      previewWindow.focus();
+      // 通过移动窗口位置来触发窗口置顶
+      const { screenX, screenY } = previewWindow;
+      previewWindow.moveTo(screenX, screenY);
+      // 如果窗口最小化，将其还原
+      if (previewWindow.document.hidden) {
+        previewWindow.focus();
+      }
+    } catch (error) {
+      console.warn('Failed to focus preview window:', error);
+    }
+
     let count = settings.countdown;
     while (count > 0) {
       setCountdown(count);
