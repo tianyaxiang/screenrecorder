@@ -28,6 +28,8 @@ import {
   Switch,
   CircularProgress,
   LinearProgress,
+  FormHelperText,
+  AlertTitle,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -39,6 +41,7 @@ import {
   OpenInNew,
   Settings,
   Info,
+  RestartAlt,
 } from '@mui/icons-material';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
@@ -55,6 +58,7 @@ interface RecordingSettings {
   videoBitrate: number;
   audioBitrate: number;
   countdown: number;
+  resolution: 'original' | '1080p' | '720p' | '480p';
 }
 
 const defaultSettings: RecordingSettings = {
@@ -62,6 +66,7 @@ const defaultSettings: RecordingSettings = {
   videoBitrate: 2500000, // 2.5 Mbps
   audioBitrate: 128000,  // 128 kbps
   countdown: 3,
+  resolution: 'original'
 };
 
 const ScreenRecorder: React.FC = () => {
@@ -447,32 +452,48 @@ const ScreenRecorder: React.FC = () => {
             '-i', 'input.webm',
             '-threads', '0',           // 使用所有可用CPU核心
             '-movflags', '+faststart', // 优化网络播放
-            '-y'                       // 自动覆盖输出文件
           ];
+
+          // 添加分辨率参数
+          if (settings.resolution !== 'original') {
+            const resolutionMap = {
+              '1080p': '1920:1080',
+              '720p': '1280:720',
+              '480p': '854:480'
+            };
+            const resolution = resolutionMap[settings.resolution];
+            commonParams.push(
+              '-vf', `scale=${resolution}:force_original_aspect_ratio=decrease,pad=${resolution}:(ow-iw)/2:(oh-ih)/2`
+            );
+          }
 
           const codecParams = format === 'mp4' 
             ? [
                 ...commonParams,
                 '-c:v', 'h264',
-                '-preset', 'veryfast',    // 使用更快的预设
-                '-crf', '30',             // 稍微降低质量以加快速度
-                '-tune', 'fastdecode',    // 优化解码速度
-                '-maxrate', '2M',         // 限制最大比特率
-                '-bufsize', '4M',         // 设置缓冲区大小
+                '-preset', 'veryfast',
+                // 根据分辨率调整比特率
+                ...(settings.resolution === '1080p' 
+                  ? ['-maxrate', '4M', '-bufsize', '8M'] 
+                  : ['-maxrate', '2M', '-bufsize', '4M']),
+                '-crf', '30',
+                '-tune', 'fastdecode',
                 '-c:a', 'aac',
                 '-b:a', '128k',
-                '-ac', '2',               // 转换为立体声
-                '-ar', '44100',           // 标准采样率
+                '-ac', '2',
+                '-ar', '44100',
+                '-y',
                 outputFileName
               ]
             : [
                 ...commonParams,
                 '-c:v', 'prores_ks',
-                '-profile:v', '0',        // 使用最快的 ProRes 配置
+                '-profile:v', '0',
                 '-vendor', 'apl0',
                 '-c:a', 'pcm_s16le',
                 '-ac', '2',
                 '-ar', '44100',
+                '-y',
                 outputFileName
               ];
 
@@ -963,67 +984,125 @@ const ScreenRecorder: React.FC = () => {
         </Stack>
       </Paper>
 
-      <Dialog open={openSettings} onClose={() => setOpenSettings(false)}>
-        <DialogTitle>Recording Settings</DialogTitle>
+      <Dialog open={openSettings} onClose={() => setOpenSettings(false)} maxWidth="md">
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Settings fontSize="small" />
+            录制和转换设置
+          </Box>
+        </DialogTitle>
         <DialogContent>
-          <Stack spacing={3} sx={{ pt: 1, minWidth: 300 }}>
-            <FormControl fullWidth>
-              <InputLabel>Frame Rate</InputLabel>
-              <Select
-                value={settings.frameRate}
-                label="Frame Rate"
-                onChange={(e) => setSettings(prev => ({ ...prev, frameRate: Number(e.target.value) }))}
-              >
-                <MenuItem value={24}>24 fps</MenuItem>
-                <MenuItem value={30}>30 fps</MenuItem>
-                <MenuItem value={60}>60 fps</MenuItem>
-              </Select>
-            </FormControl>
+          <Stack spacing={3} sx={{ pt: 1, minWidth: 400 }}>
+            {/* 录制设置组 */}
+            <Box>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'medium', color: 'primary.main' }}>
+                录制设置
+              </Typography>
+              <Stack spacing={2}>
+                <FormControl fullWidth>
+                  <InputLabel>帧率</InputLabel>
+                  <Select
+                    value={settings.frameRate}
+                    label="帧率"
+                    onChange={(e) => setSettings(prev => ({ ...prev, frameRate: Number(e.target.value) }))}
+                  >
+                    <MenuItem value={24}>24 fps (电影效果)</MenuItem>
+                    <MenuItem value={30}>30 fps (推荐)</MenuItem>
+                    <MenuItem value={60}>60 fps (流畅)</MenuItem>
+                  </Select>
+                  <FormHelperText>更高的帧率会产生更流畅的视频，但文件更大</FormHelperText>
+                </FormControl>
 
-            <FormControl fullWidth>
-              <InputLabel>Video Quality</InputLabel>
-              <Select
-                value={settings.videoBitrate}
-                label="Video Quality"
-                onChange={(e) => setSettings(prev => ({ ...prev, videoBitrate: Number(e.target.value) }))}
-              >
-                <MenuItem value={1000000}>Low (1 Mbps)</MenuItem>
-                <MenuItem value={2500000}>Medium (2.5 Mbps)</MenuItem>
-                <MenuItem value={5000000}>High (5 Mbps)</MenuItem>
-              </Select>
-            </FormControl>
+                <FormControl fullWidth>
+                  <InputLabel>倒计时</InputLabel>
+                  <Select
+                    value={settings.countdown}
+                    label="倒计时"
+                    onChange={(e) => setSettings(prev => ({ ...prev, countdown: Number(e.target.value) }))}
+                  >
+                    <MenuItem value={0}>无倒计时</MenuItem>
+                    <MenuItem value={3}>3 秒</MenuItem>
+                    <MenuItem value={5}>5 秒</MenuItem>
+                    <MenuItem value={10}>10 秒</MenuItem>
+                  </Select>
+                  <FormHelperText>录制开始前的等待时间</FormHelperText>
+                </FormControl>
+              </Stack>
+            </Box>
 
-            <FormControl fullWidth>
-              <InputLabel>Audio Quality</InputLabel>
-              <Select
-                value={settings.audioBitrate}
-                label="Audio Quality"
-                onChange={(e) => setSettings(prev => ({ ...prev, audioBitrate: Number(e.target.value) }))}
-              >
-                <MenuItem value={64000}>Low (64 kbps)</MenuItem>
-                <MenuItem value={128000}>Medium (128 kbps)</MenuItem>
-                <MenuItem value={192000}>High (192 kbps)</MenuItem>
-              </Select>
-            </FormControl>
+            {/* 视频转换设置组 */}
+            <Box>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'medium', color: 'primary.main' }}>
+                视频转换设置
+              </Typography>
+              <Stack spacing={2}>
+                <FormControl fullWidth>
+                  <InputLabel>输出分辨率</InputLabel>
+                  <Select
+                    value={settings.resolution}
+                    label="输出分辨率"
+                    onChange={(e) => setSettings(prev => ({ ...prev, resolution: e.target.value as 'original' | '1080p' | '720p' | '480p' }))}
+                  >
+                    <MenuItem value="original">原始尺寸</MenuItem>
+                    <MenuItem value="1080p">1080p (1920×1080) - 高清</MenuItem>
+                    <MenuItem value="720p">720p (1280×720) - 推荐</MenuItem>
+                    <MenuItem value="480p">480p (854×480) - 快速</MenuItem>
+                  </Select>
+                  <FormHelperText>较低的分辨率可以加快转换速度并减小文件大小</FormHelperText>
+                </FormControl>
 
-            <FormControl fullWidth>
-              <InputLabel>Countdown Timer</InputLabel>
-              <Select
-                value={settings.countdown}
-                label="Countdown Timer"
-                onChange={(e) => setSettings(prev => ({ ...prev, countdown: Number(e.target.value) }))}
-              >
-                <MenuItem value={0}>No Countdown</MenuItem>
-                <MenuItem value={3}>3 Seconds</MenuItem>
-                <MenuItem value={5}>5 Seconds</MenuItem>
-                <MenuItem value={10}>10 Seconds</MenuItem>
-              </Select>
-            </FormControl>
+                <FormControl fullWidth>
+                  <InputLabel>视频质量</InputLabel>
+                  <Select
+                    value={settings.videoBitrate}
+                    label="视频质量"
+                    onChange={(e) => setSettings(prev => ({ ...prev, videoBitrate: Number(e.target.value) }))}
+                  >
+                    <MenuItem value={1000000}>低质量 (1 Mbps)</MenuItem>
+                    <MenuItem value={2500000}>中等质量 (2.5 Mbps)</MenuItem>
+                    <MenuItem value={5000000}>高质量 (5 Mbps)</MenuItem>
+                  </Select>
+                  <FormHelperText>更高的比特率会产生更清晰的视频，但文件更大</FormHelperText>
+                </FormControl>
+
+                <FormControl fullWidth>
+                  <InputLabel>音频质量</InputLabel>
+                  <Select
+                    value={settings.audioBitrate}
+                    label="音频质量"
+                    onChange={(e) => setSettings(prev => ({ ...prev, audioBitrate: Number(e.target.value) }))}
+                  >
+                    <MenuItem value={64000}>低质量 (64 kbps)</MenuItem>
+                    <MenuItem value={128000}>中等质量 (128 kbps)</MenuItem>
+                    <MenuItem value={192000}>高质量 (192 kbps)</MenuItem>
+                  </Select>
+                  <FormHelperText>更高的比特率会产生更清晰的声音</FormHelperText>
+                </FormControl>
+              </Stack>
+            </Box>
+
+            {/* 提示信息 */}
+            <Alert severity="info" sx={{ mt: 2 }}>
+              <AlertTitle>提示</AlertTitle>
+              • 选择合适的设置可以在文件大小和质量之间取得平衡<br />
+              • 较低的分辨率和比特率可以加快转换速度<br />
+              • 对于大多数屏幕录制，推荐使用 720p 分辨率和中等质量设置
+            </Alert>
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSettings(defaultSettings)}>Reset to Default</Button>
-          <Button onClick={() => setOpenSettings(false)}>Close</Button>
+          <Button 
+            onClick={() => setSettings(defaultSettings)}
+            startIcon={<RestartAlt />}
+          >
+            恢复默认设置
+          </Button>
+          <Button 
+            onClick={() => setOpenSettings(false)}
+            variant="contained"
+          >
+            确定
+          </Button>
         </DialogActions>
       </Dialog>
 
