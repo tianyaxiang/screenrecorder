@@ -11,7 +11,7 @@ interface PreviewData {
 const PreviewPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     // 从 localStorage 读取数据
@@ -30,25 +30,58 @@ const PreviewPage: React.FC = () => {
 
   useEffect(() => {
     if (previewData?.type === 'html' && contentRef.current) {
-      // 创建一个安全的方式来渲染 HTML 内容
-      const contentContainer = contentRef.current;
-      contentContainer.innerHTML = previewData.content;
+      const iframe = contentRef.current;
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
 
-      // 添加默认样式
-      const style = document.createElement('style');
-      style.textContent = `
-        body {
-          margin: 0;
-          padding: 0;
-          width: 100%;
-          height: 100%;
-          overflow: auto;
+      if (iframeDoc) {
+        // 写入完整的 HTML 文档
+        iframeDoc.open();
+        
+        // 如果内容不包含完整的 HTML 结构，添加基本结构
+        let content = previewData.content.trim();
+        if (!content.toLowerCase().includes('<!doctype html>')) {
+          content = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+    * {
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  ${content}
+</body>
+</html>`;
         }
-        * {
-          box-sizing: border-box;
-        }
-      `;
-      contentContainer.appendChild(style);
+
+        iframeDoc.write(content);
+        iframeDoc.close();
+
+        // 等待 iframe 加载完成后执行脚本
+        iframe.onload = () => {
+          // 查找所有脚本标签并重新执行
+          const scripts = iframeDoc.getElementsByTagName('script');
+          Array.from(scripts).forEach(oldScript => {
+            const newScript = iframeDoc.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => {
+              newScript.setAttribute(attr.name, attr.value);
+            });
+            newScript.textContent = oldScript.textContent;
+            oldScript.parentNode?.replaceChild(newScript, oldScript);
+          });
+        };
+      }
     }
   }, [previewData]);
 
@@ -88,7 +121,7 @@ const PreviewPage: React.FC = () => {
   };
 
   const contentStyle: React.CSSProperties = {
-    width: deviceMode === 'mobile' ? '375px' : '100%',
+    width: deviceMode === 'mobile' ? '430px' : '100%',
     height: deviceMode === 'mobile' ? '812px' : '100%',
     overflow: 'hidden',
     backgroundColor: 'white',
@@ -108,13 +141,15 @@ const PreviewPage: React.FC = () => {
             title="Preview Content"
           />
         ) : (
-          <div 
+          <iframe
             ref={contentRef}
             style={{
               width: '100%',
               height: '100%',
-              overflow: 'auto',
+              border: 'none',
             }}
+            title="HTML Preview"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
           />
         )}
       </div>

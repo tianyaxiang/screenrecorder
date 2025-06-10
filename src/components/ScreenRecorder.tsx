@@ -66,6 +66,8 @@ const ScreenRecorder: React.FC = () => {
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       margin: 0;
@@ -93,13 +95,44 @@ const ScreenRecorder: React.FC = () => {
       margin-top: 1rem;
       opacity: 0.9;
     }
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 4px;
+      background: white;
+      color: #FE6B8B;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body>
   <div class="content">
     <h1>Hello World!</h1>
-    <p>This is a custom HTML preview</p>
+    <p>This is a custom HTML preview with JavaScript</p>
+    <p id="counter">Clicked: 0 times</p>
+    <button onclick="incrementCounter()">Click me!</button>
   </div>
+
+  <script>
+    let count = 0;
+    function incrementCounter() {
+      count++;
+      document.getElementById('counter').textContent = \`Clicked: \${count} times\`;
+      
+      // 添加一些动画效果
+      const h1 = document.querySelector('h1');
+      h1.style.transform = 'scale(1.1)';
+      setTimeout(() => {
+        h1.style.transform = 'scale(1)';
+      }, 200);
+    }
+  </script>
 </body>
 </html>
   `.trim());
@@ -145,8 +178,9 @@ const ScreenRecorder: React.FC = () => {
     const previewUrl = `/preview?${params.toString()}`;
     
     // 移动设备模式下使用精确的设备尺寸，并使用应用模式
+    //ipone pro max 430*932
     const windowFeatures = deviceMode === 'mobile'
-      ? `left=0,top=0,width=375,height=812,menubar=no,toolbar=no,location=no,status=no,titlebar=no,directories=no,fullscreen=yes,scrollbars=no,resizable=no,chrome=yes,centerscreen=yes`
+      ? `left=0,top=0,width=430,height=812,menubar=no,toolbar=no,location=no,status=no,titlebar=no,directories=no,fullscreen=yes,scrollbars=no,resizable=no,chrome=yes,centerscreen=yes`
       : 'width=1024,height=768,menubar=no,toolbar=no,location=no,status=no';
     
     const newWindow = window.open(previewUrl, 'PreviewWindow', windowFeatures);
