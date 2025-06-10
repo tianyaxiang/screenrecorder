@@ -352,10 +352,6 @@ const ScreenRecorder: React.FC = () => {
             </Tooltip>
           </Box>
 
-          <Divider>
-            <Chip label="Input Settings" />
-          </Divider>
-
           {error && (
             <Alert 
               severity={error.includes('Failed') ? 'error' : 'info'}
@@ -365,6 +361,8 @@ const ScreenRecorder: React.FC = () => {
               {error}
             </Alert>
           )}
+
+    
 
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={activeTab} onChange={handleTabChange}>
@@ -404,158 +402,203 @@ const ScreenRecorder: React.FC = () => {
             />
           </Box>
 
-          <Divider>
-            <Chip label="Preview Settings" />
-          </Divider>
-          
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-            <TextField
-              type="color"
-              label="Background Color"
-              value={backgroundColor}
-              onChange={(e) => setBackgroundColor(e.target.value)}
-              sx={{ width: 200 }}
-            />
-            <ToggleButtonGroup
-              value={deviceMode}
-              exclusive
-              onChange={handleDeviceModeChange}
-              aria-label="device mode"
-            >
-              <ToggleButton value="desktop" aria-label="desktop mode">
-                <Tooltip title="Desktop View">
-                  <Computer />
-                </Tooltip>
-              </ToggleButton>
-              <ToggleButton value="mobile" aria-label="mobile mode">
-                <Tooltip title="Mobile View">
-                  <PhoneAndroid />
-                </Tooltip>
-              </ToggleButton>
-            </ToggleButtonGroup>
-            <Button
-              variant="contained"
-              startIcon={<OpenInNew />}
-              onClick={openPreviewWindow}
-              disabled={recordingState.isRecording}
-            >
-              Open Preview
-            </Button>
-          </Box>
-
-          <Divider>
-            <Chip label="Recording Preview" />
-          </Divider>
-
-          <Box 
+          <Paper 
+            elevation={2} 
             sx={{ 
-              width: '100%',
-              minHeight: '400px',
-              bgcolor: backgroundColor,
-              overflow: 'hidden',
-              borderRadius: 1,
-              border: '1px solid #ccc',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              p: 2,
-              position: 'relative',
+              p: 2, 
+              bgcolor: 'background.default',
+              position: 'sticky',
+              top: 16,
+              zIndex: 1000,
             }}
           >
-            {countdown !== null && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  zIndex: 1,
+            <Stack spacing={2}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
+                  Preview Settings:
+                </Typography>
+                <TextField
+                  type="color"
+                  label="Background Color"
+                  value={backgroundColor}
+                  onChange={(e) => setBackgroundColor(e.target.value)}
+                  size="small"
+                  sx={{ width: 150 }}
+                />
+                <ToggleButtonGroup
+                  value={deviceMode}
+                  exclusive
+                  onChange={handleDeviceModeChange}
+                  aria-label="device mode"
+                  size="small"
+                >
+                  <ToggleButton value="desktop" aria-label="desktop mode">
+                    <Tooltip title="Desktop View">
+                      <Computer />
+                    </Tooltip>
+                  </ToggleButton>
+                  <ToggleButton value="mobile" aria-label="mobile mode">
+                    <Tooltip title="Mobile View">
+                      <PhoneAndroid />
+                    </Tooltip>
+                  </ToggleButton>
+                </ToggleButtonGroup>
+                <Button
+                  variant="contained"
+                  startIcon={<OpenInNew />}
+                  onClick={openPreviewWindow}
+                  disabled={recordingState.isRecording}
+                  sx={{
+                    ml: 'auto',
+                    bgcolor: 'info.main',
+                    '&:hover': {
+                      bgcolor: 'info.dark',
+                    }
+                  }}
+                >
+                  Open Preview
+                </Button>
+              </Box>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
+                  Recording Controls:
+                </Typography>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  {!recordingState.isRecording ? (
+                    <Tooltip title="Start Recording">
+                      <span>
+                        <IconButton
+                          color="primary"
+                          onClick={() => startCountdown()}
+                          disabled={recordingState.isRecording || !previewWindow || previewWindow.closed}
+                          sx={{ 
+                            width: 48, 
+                            height: 48,
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                              bgcolor: 'primary.dark',
+                            },
+                            '&.Mui-disabled': {
+                              bgcolor: 'action.disabledBackground',
+                              color: 'action.disabled',
+                            }
+                          }}
+                        >
+                          <PlayArrow />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip title="Stop Recording">
+                      <IconButton
+                        color="error"
+                        onClick={stopRecording}
+                        disabled={!recordingState.isRecording}
+                        sx={{ 
+                          width: 48, 
+                          height: 48,
+                          bgcolor: 'error.main',
+                          color: 'white',
+                          '&:hover': {
+                            bgcolor: 'error.dark',
+                          }
+                        }}
+                      >
+                        <Stop />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+
+                  {recordingState.recordedChunks.length > 0 && (
+                    <>
+                      <Tooltip title="Download Recording">
+                        <IconButton 
+                          onClick={downloadRecording}
+                          sx={{ 
+                            width: 48, 
+                            height: 48,
+                            bgcolor: 'success.light',
+                            color: 'white',
+                            '&:hover': {
+                              bgcolor: 'success.main',
+                            }
+                          }}
+                        >
+                          <Download />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Clear Recording">
+                        <IconButton 
+                          onClick={clearRecording}
+                          sx={{ 
+                            width: 48, 
+                            height: 48,
+                            bgcolor: 'warning.light',
+                            color: 'white',
+                            '&:hover': {
+                              bgcolor: 'warning.main',
+                            }
+                          }}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
+                </Stack>
+              </Box>
+            </Stack>
+          </Paper>
+
+          {/* 录制预览区域 - 只在有录制内容时显示 */}
+          {recordingState.recordedChunks.length > 0 && (
+            <>
+            
+              <Box 
+                sx={{ 
+                  width: '100%',
+                  height: '400px',
+                  bgcolor: backgroundColor,
+                  overflow: 'hidden',
+                  borderRadius: 1,
+                  border: '1px solid #ccc',
                 }}
               >
-                <Typography variant="h1" color="white">
-                  {countdown}
-                </Typography>
+                <video
+                  src={recordingState.previewUrl}
+                  controls
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                  }}
+                />
               </Box>
-            )}
-            {recordingState.previewUrl ? (
-              <video
-                src={recordingState.previewUrl}
-                controls
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                }}
-              />
-            ) : (
-              <Typography variant="body1" color="text.secondary" align="center">
-                Click "Open Preview" to open content in a new window for recording
-                <br />
-                <br />
-                After opening the preview, click the record button to start recording
+            </>
+          )}
+
+          {countdown !== null && (
+            <Box
+              sx={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                zIndex: 1200,
+              }}
+            >
+              <Typography variant="h1" color="white">
+                {countdown}
               </Typography>
-            )}
-          </Box>
-
-          <Divider>
-            <Chip label="Recording Controls" />
-          </Divider>
-
-          <Stack direction="row" spacing={2} justifyContent="center">
-            {!recordingState.isRecording ? (
-              <Tooltip title="Start Recording">
-                <span>
-                  <IconButton
-                    color="primary"
-                    onClick={() => startCountdown()}
-                    disabled={recordingState.isRecording || !previewWindow || previewWindow.closed}
-                    sx={{ width: 56, height: 56 }}
-                  >
-                    <PlayArrow sx={{ fontSize: 32 }} />
-                  </IconButton>
-                </span>
-              </Tooltip>
-            ) : (
-              <Tooltip title="Stop Recording">
-                <IconButton
-                  color="error"
-                  onClick={stopRecording}
-                  disabled={!recordingState.isRecording}
-                  sx={{ width: 56, height: 56 }}
-                >
-                  <Stop sx={{ fontSize: 32 }} />
-                </IconButton>
-              </Tooltip>
-            )}
-
-            {recordingState.recordedChunks.length > 0 && (
-              <>
-                <Tooltip title="Download Recording">
-                  <IconButton 
-                    color="primary" 
-                    onClick={downloadRecording}
-                    sx={{ width: 56, height: 56 }}
-                  >
-                    <Download sx={{ fontSize: 32 }} />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Clear Recording">
-                  <IconButton 
-                    color="error" 
-                    onClick={clearRecording}
-                    sx={{ width: 56, height: 56 }}
-                  >
-                    <Delete sx={{ fontSize: 32 }} />
-                  </IconButton>
-                </Tooltip>
-              </>
-            )}
-          </Stack>
+            </Box>
+          )}
         </Stack>
       </Paper>
 
