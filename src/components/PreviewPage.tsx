@@ -121,7 +121,7 @@ const PreviewPage: React.FC = () => {
   };
 
   const contentStyle: React.CSSProperties = {
-    width: deviceMode === 'mobile' ? '430px' : '100%',
+    width: deviceMode === 'mobile' ? '375px' : '100%',
     height: deviceMode === 'mobile' ? '812px' : '100%',
     overflow: 'hidden',
     backgroundColor: 'white',

@@ -178,7 +178,7 @@ const ScreenRecorder: React.FC = () => {
     // 移动设备模式下使用精确的设备尺寸，并使用应用模式
     //ipone pro max 430*932
     const windowFeatures = deviceMode === 'mobile'
-      ? `left=0,top=0,width=430,height=812,menubar=no,toolbar=no,location=no,status=no,titlebar=no,directories=no,fullscreen=yes,scrollbars=no,resizable=no,chrome=yes,centerscreen=yes,alwaysRaised=yes`
+      ? `left=0,top=0,width=375,height=812,menubar=no,toolbar=no,location=no,status=no,titlebar=no,directories=no,fullscreen=yes,scrollbars=no,resizable=no,chrome=yes,centerscreen=yes,alwaysRaised=yes`
       : 'width=1024,height=768,menubar=no,toolbar=no,location=no,status=no,alwaysRaised=yes';
     
     // 关闭之前的预览窗口
