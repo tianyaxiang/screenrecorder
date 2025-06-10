@@ -12,6 +12,15 @@ export default defineConfig({
     // 增加请求头大小限制
     headers: {
       'Access-Control-Allow-Headers': '*',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
     },
+  },
+  build: {
+    target: 'esnext',
+    minify: false,
+  },
+  optimizeDeps: {
+    exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util', '@ffmpeg/core'],
   },
 })
