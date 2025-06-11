@@ -41,7 +41,7 @@ import {
   Language,
 } from '@mui/icons-material';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile, toBlobURL } from '@ffmpeg/util';
+import { fetchFile } from '@ffmpeg/util';
 
 interface RecordingState {
   isRecording: boolean;
