@@ -16,7 +16,6 @@ const theme = createTheme({
 });
 
 const Preview = () => {
-  const [searchParams] = useSearchParams();
   return <PreviewPage />;
 };
 

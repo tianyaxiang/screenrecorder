@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -14,19 +14,10 @@ import {
   ToggleButtonGroup,
   Alert,
   Tooltip,
-  Divider,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  FormControlLabel,
-  Switch,
-  CircularProgress,
   LinearProgress,
   FormHelperText,
   AlertTitle,
@@ -46,7 +37,7 @@ import {
   Language,
 } from '@mui/icons-material';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile, toBlobURL } from '@ffmpeg/util';
+import { fetchFile } from '@ffmpeg/util';
 
 interface RecordingState {
   isRecording: boolean;
