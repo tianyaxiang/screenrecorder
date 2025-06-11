@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Recorder Preview</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #content {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        #custom-content {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="content" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+    <div id="custom-content"></div>
+    <script>
+        // 从 localStorage 获取预览数据
+        const previewData = JSON.parse(localStorage.getItem('previewData') || '{}');
+        const { content, type, backgroundColor, deviceMode } = previewData;
+
+        // 设置背景色
+        document.body.style.backgroundColor = backgroundColor || '#ffffff';
+
+        // 根据类型显示内容
+        if (type === 'url' && content) {
+            const iframe = document.getElementById('content');
+            iframe.style.display = 'block';
+            document.getElementById('custom-content').style.display = 'none';
+            iframe.src = content;
+        } else if (type === 'html' && content) {
+            const container = document.getElementById('custom-content');
+            container.style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+            container.innerHTML = content;
+        }
+
+        // 设置移动设备模式的视口大小
+        if (deviceMode === 'mobile') {
+            const viewport = document.querySelector('meta[name="viewport"]');
+            viewport.content = 'width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+        }
+    </script>
+</body>
+</html> 

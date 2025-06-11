@@ -30,6 +30,7 @@ import {
   LinearProgress,
   FormHelperText,
   AlertTitle,
+  InputAdornment,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -42,6 +43,7 @@ import {
   Settings,
   Info,
   RestartAlt,
+  Language,
 } from '@mui/icons-material';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
@@ -71,6 +73,7 @@ const defaultSettings: RecordingSettings = {
 
 const ScreenRecorder: React.FC = () => {
   const [url, setUrl] = useState<string>('');
+  const [urlError, setUrlError] = useState<string>('');
   const [htmlContent, setHtmlContent] = useState<string>(`
 <!DOCTYPE html>
 <html>
@@ -192,6 +195,25 @@ const ScreenRecorder: React.FC = () => {
   }, [ffmpeg]);
 
   const openPreviewWindow = () => {
+    // URL 格式验证
+    if (activeTab === 0) {
+      try {
+        const urlObj = new URL(url);
+        if (!['http:', 'https:'].includes(urlObj.protocol)) {
+          setUrlError('请输入有效的 http 或 https 网址');
+          return;
+        }
+      } catch (e) {
+        setUrlError('请输入有效的网址');
+        return;
+      }
+      
+      if (!url.trim()) {
+        setUrlError('请输入网址');
+        return;
+      }
+    }
+
     const previewData = {
       content: activeTab === 0 ? url : htmlContent,
       type: activeTab === 0 ? 'url' : 'html',
@@ -205,7 +227,7 @@ const ScreenRecorder: React.FC = () => {
       timestamp: Date.now().toString(),
     });
 
-    const previewUrl = `/preview?${params.toString()}`;
+    const previewUrl = activeTab === 0 ? url : `/preview?${params.toString()}`;
     
     // 移动设备模式下使用精确的设备尺寸，并使用应用模式
     //ipone pro max 430*932
@@ -668,11 +690,27 @@ const ScreenRecorder: React.FC = () => {
           <Box role="tabpanel" hidden={activeTab !== 0}>
             <TextField
               fullWidth
-              label="Enter URL to record"
+              label="输入要录制的网址"
               placeholder="https://example.com"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              helperText="Enter the URL of the website you want to record"
+              onChange={(e) => {
+                setUrl(e.target.value);
+                setUrlError('');
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  openPreviewWindow();
+                }
+              }}
+              error={!!urlError}
+              helperText={urlError || "输入完整的网址，包括 https:// 或 http://，按回车键直接打开"}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Language />
+                  </InputAdornment>
+                ),
+              }}
             />
           </Box>
 
