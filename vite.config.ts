@@ -18,8 +18,20 @@ export default defineConfig({
   build: {
     target: 'esnext',
     minify: false,
+    rollupOptions: {
+      external: ['@ffmpeg/ffmpeg', '@ffmpeg/util']
+    }
   },
   optimizeDeps: {
-    exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util', '@ffmpeg/core'],
+    exclude: [
+      '@ffmpeg/ffmpeg',
+      '@ffmpeg/util',
+      '@ffmpeg/core'
+    ]
   },
+  resolve: {
+    alias: {
+      '@ffmpeg/core': '@ffmpeg/core/dist/esm/index.js'
+    }
+  }
 })

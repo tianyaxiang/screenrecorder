@@ -41,7 +41,7 @@ import {
   Language,
 } from '@mui/icons-material';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile } from '@ffmpeg/util';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
 interface RecordingState {
   isRecording: boolean;
@@ -177,15 +177,66 @@ const ScreenRecorder = () => {
     const loadFFmpeg = async () => {
       try {
         if (!ffmpeg.loaded) {
-          await ffmpeg.load();
+          // 使用 CDN 加载 FFmpeg core 文件
+          const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm';
+          const ffmpegCore = await fetch(
+            `${baseURL}/ffmpeg-core.js`
+          ).then(response => response.text());
+          const ffmpegCoreUrl = URL.createObjectURL(
+            new Blob([ffmpegCore], { type: 'text/javascript' })
+          );
+
+          const wasmBinary = await fetch(
+            `${baseURL}/ffmpeg-core.wasm`
+          ).then(response => response.arrayBuffer());
+          const wasmUrl = URL.createObjectURL(
+            new Blob([wasmBinary], { type: 'application/wasm' })
+          );
+
+          await ffmpeg.load({
+            coreURL: ffmpegCoreUrl,
+            wasmURL: wasmUrl
+          });
+
+          // 清理创建的 URL
+          URL.revokeObjectURL(ffmpegCoreUrl);
+          URL.revokeObjectURL(wasmUrl);
         }
-        console.log('FFmpeg loaded successfully');
-        setFFmpegLoaded(true);
-      } catch (error) {
+
+        // 测试 FFmpeg 是否可用
+        try {
+          await ffmpeg.exec(['-version']);
+          console.log('FFmpeg loaded and working successfully');
+          setFFmpegLoaded(true);
+          setError('');
+        } catch (testError) {
+          console.error('FFmpeg load test failed:', testError);
+          throw new Error('FFmpeg load test failed');
+        }
+      } catch (error: unknown) {
         console.error('Failed to load FFmpeg:', error);
-        setError('无法加载视频转换组件，MP4和MOV格式暂时不可用。请确保使用支持的浏览器（如 Chrome）并允许跨域访问。');
+        let errorMessage = '无法加载视频转换组件。';
+        
+        if (error instanceof Error) {
+          console.error('Error details:', error.message);
+          if (error.message.includes('SharedArrayBuffer')) {
+            errorMessage += '请确保网站运行在安全上下文中（HTTPS）。';
+          } else if (error.message.includes('CORS')) {
+            errorMessage += '请检查浏览器的跨域访问设置。';
+          } else if (error.message.includes('WebAssembly')) {
+            errorMessage += '您的浏览器可能不支持 WebAssembly，请使用最新版本的 Chrome、Firefox 或 Edge。';
+          } else {
+            errorMessage += `\n错误详情: ${error.message}`;
+          }
+        }
+        
+        errorMessage += '\n\n如果问题持续存在，请尝试：\n1. 使用最新版本的 Chrome 浏览器\n2. 刷新页面\n3. 清除浏览器缓存';
+        
+        setError(errorMessage);
+        setFFmpegLoaded(false);
       }
     };
+
     loadFFmpeg();
   }, [ffmpeg]);
 
