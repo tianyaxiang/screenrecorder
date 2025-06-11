@@ -35,5 +35,15 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5"
+  },
+  "imports": {
+    "@ffmpeg/ffmpeg": {
+      "types": "@ffmpeg/ffmpeg/dist/esm/index.d.ts",
+      "default": "@ffmpeg/ffmpeg/dist/esm/index.js"
+    },
+    "@ffmpeg/util": {
+      "types": "@ffmpeg/util/dist/esm/index.d.ts",
+      "default": "@ffmpeg/util/dist/esm/index.js"
+    }
   }
 }
