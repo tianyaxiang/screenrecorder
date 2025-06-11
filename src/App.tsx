@@ -17,19 +17,7 @@ const theme = createTheme({
 
 const Preview = () => {
   const [searchParams] = useSearchParams();
-  const content = searchParams.get('content') || '';
-  const type = (searchParams.get('type') || 'url') as 'url' | 'html';
-  const backgroundColor = searchParams.get('backgroundColor') || '#ffffff';
-  const deviceMode = (searchParams.get('deviceMode') || 'desktop') as 'desktop' | 'mobile';
-
-  return (
-    <PreviewPage
-      content={content}
-      type={type}
-      backgroundColor={backgroundColor}
-      deviceMode={deviceMode}
-    />
-  );
+  return <PreviewPage />;
 };
 
 function App() {

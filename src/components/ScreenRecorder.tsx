@@ -71,7 +71,7 @@ const defaultSettings: RecordingSettings = {
   resolution: 'original'
 };
 
-const ScreenRecorder: React.FC = () => {
+const ScreenRecorder = () => {
   const [url, setUrl] = useState<string>('');
   const [urlError, setUrlError] = useState<string>('');
   const [htmlContent, setHtmlContent] = useState<string>(`
@@ -636,14 +636,11 @@ const ScreenRecorder: React.FC = () => {
     }));
   };
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
-  const handleDeviceModeChange = (
-    event: React.MouseEvent<HTMLElement>,
-    newMode: 'desktop' | 'mobile',
-  ) => {
+  const handleDeviceModeChange = (_: React.MouseEvent<HTMLElement>, newMode: 'desktop' | 'mobile' | null) => {
     if (newMode !== null) {
       setDeviceMode(newMode);
     }
